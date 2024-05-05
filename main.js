@@ -28,13 +28,13 @@ scene.add(pointLight, ambientLight)
 
 const lightHelper = new THREE.PointLightHelper(pointLight)
 const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, gridHelper)
+//scene.add(lightHelper, gridHelper) 
 
 const controls = new OrbitControls(camera, render.domElement);
 
 // let's add some stars
 function addStar(){
-  const geometry = new THREE.SphereGeometry(0.25, 24, 24);
+  const geometry = new THREE.SphereGeometry(0.10, 16, 16);
   const material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
   const star = new THREE.Mesh( geometry, material )
 
@@ -44,7 +44,7 @@ function addStar(){
   scene.add(star)
 }
 
-Array(200).fill().forEach(addStar)
+Array(220).fill().forEach(addStar)
 
 const background = new THREE.TextureLoader().load('background.jpg');
 scene.background = background;
@@ -71,9 +71,9 @@ function moveCamera(){
   moon.rotation.y += 0.075;
   moon.rotation.z += 0.05;
 
-  camera.position.x = t * -0.0002;
-  camera.position.y = t * -0.0002;
-  camera.position.z = t * -0.01;
+  camera.position.x = p * -0.0002;
+  camera.position.y = p * -0.0002;
+  camera.position.z = p * -0.01;
 }
 
 document.body.onscroll = moveCamera // to call the func every time the user scrolls
