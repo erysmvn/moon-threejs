@@ -14,15 +14,10 @@ const render = new THREE.WebGLRenderer({
 render.setPixelRatio( window.devicePixelRatio );
 render.setSize( window.innerWidth, window.innerHeight );
 
-camera.position.setZ(30);
+camera.position.setZ(34);
+camera.position.setX(-5);
 
 render.render( scene, camera );
-
-const geometry = new THREE.TorusGeometry( 10, 3, 16, 100 );
-const material = new THREE.MeshBasicMaterial( { color: 0xFF6347 } );
-const torus = new THREE.Mesh( geometry, material )
-
-scene.add(torus)
 
 //without light we won't se our shape
 const pointLight = new THREE.PointLight(0xffffff)
@@ -51,13 +46,45 @@ function addStar(){
 
 Array(200).fill().forEach(addStar)
 
+const background = new THREE.TextureLoader().load('background.jpg');
+scene.background = background;
+
+const moonTexture = new THREE.TextureLoader().load('moon.jpg');
+const moonDepth = new THREE.TextureLoader().load('depth.jpg'); // doing so we can give to the moon a realistic texture
+
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(3, 32, 32),
+  new THREE.MeshStandardMaterial( {
+    map: moonTexture,
+    normalMap: moonDepth
+  } )
+)
+
+scene.add(moon);
+
+moon.position.z = 30;
+moon.position.setX(-7); // quite the same as using the equal
+
+function moveCamera(){
+  const p = document.body.getBoundingClientRect().top() // reading where the user is scrolling to check how far we are from the top
+  moon.rotation.x += 0.05;
+  moon.rotation.y += 0.075;
+  moon.rotation.z += 0.05;
+
+  camera.position.x = t * -0.0002;
+  camera.position.y = t * -0.0002;
+  camera.position.z = t * -0.01;
+}
+
+document.body.onscroll = moveCamera // to call the func every time the user scrolls
+
 // let's create a function to automate this action
 function animate(){
   requestAnimationFrame( animate );
 
-  torus.rotation.x += 0.01;
-  torus.rotation.y += 0.005;
-  torus.rotation.z += 0.01;
+  moon.rotation.x += 0.001;
+  moon.rotation.y += 0.0005;
+  moon.rotation.z += 0.001;
 
   controls.update();
 
