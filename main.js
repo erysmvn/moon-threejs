@@ -1,8 +1,8 @@
-import { add, faceDirection } from 'three/examples/jsm/nodes/Nodes.js';
+import { add, faceDirection, rotate } from 'three/examples/jsm/nodes/Nodes.js';
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { gsap } from "gsap";
 
 
 const scene = new THREE.Scene();
@@ -49,7 +49,7 @@ function addStar(){
   scene.add(star)
 }
 
-Array(220).fill().forEach(addStar)
+Array(220).fill().forEach(addStar) //stars
 
 const background = new THREE.TextureLoader().load('background.jpg');
 scene.background = background;
@@ -70,19 +70,86 @@ scene.add(moon);
 moon.position.z = 30;
 moon.position.setX(-7); // quite the same as using the equal
 
-function moveCamera(){
-  //const top = document.body.getBoundingClientRect().top;  // reading where the user is scrolling to check how far we are from the top
-  //const moveUp = top + moveUp;
+const transformMoon = [
+  {
+    rotationZ: 0.45,
+    positionX: 1.5
+  },{
+    rotationZ: -0.45,
+    positionX: -1.5
+  },{
+    rotationZ: 0.0314,
+    positionX: 0
+  }
+]
+
+let scrollY = window.scrollY;
+let currentSession = 0;
+
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY
+  const newSection = Math.round(scrollY / window.innerHeight);
+
+  if (newSection != currentSession){
+    currentSession = newSection;
+
+    if (!!moon){
+      gsap.to(
+        moon.rotation, {
+          duration: 1.5,
+          ease: 'power2.inOut',
+          z: transformMoon[currentSession].rotationZ
+        }
+      )
+      gsap.to(
+        moon.position, {
+          duration: 1.5,
+          ease: 'power2.inOut',
+          x: transformMoon[currentSession].positionX
+        }
+      )
+    }
+  }
+}); 
+
+// on reload
+window.onbeforeunload = function() {
+  window.scrollTo(0, 0);
+} 
+
+function onScroll(){
   moon.rotation.x += 0.05;
   moon.rotation.y += 0.075;
   moon.rotation.z += 0.05;
 
-  camera.position.x = camera.position.x -0.2;
-  camera.position.y = camera.position.y -0.2;
-  camera.position.z = camera.position.z -0.1;
+  moon.position.x += 0.2;
+  moon.position.y +=  0.002;
+  moon.position.z +=  0.01;
 }
 
-document.body.onscroll = moveCamera // to call the func every time the user scrolls
+//window.addEventListener('scroll', onScroll); // to call the func every time the user scrolls
+
+window.addEventListener('wheel', onWheel); // to call the func every time the user scrolls
+
+let y = 0
+let position = 0
+
+function onWheel(event){
+  y = event.deltaY * 0.0007;
+}
+
+const clock = new THREE.Clock();
+let lastElapsedTime = 0;
+
+const tick = () => {
+  const ElapsedTime = clock.getElapsedTime();
+  const deltaTime = ElapsedTime - lastElapsedTime;
+  lastElapsedTime = ElapsedTime
+
+  render.render( scene, camera );
+
+  window.requestAnimationFrame(tick)
+}
 
 // let's create a function to automate this action
 function animate(){
@@ -92,9 +159,13 @@ function animate(){
   moon.rotation.y += 0.0005;
   moon.rotation.z += 0.001;
 
+  camera.position.y = y;
+  position += y;
+  y *= 0.9;
+
   controls.update();
 
   render.render( scene, camera );
 }
-
+tick()
 animate()
