@@ -2,6 +2,8 @@ import { add, faceDirection } from 'three/examples/jsm/nodes/Nodes.js';
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
 
 const scene = new THREE.Scene();
 
@@ -31,6 +33,9 @@ const gridHelper = new THREE.GridHelper(200, 50);
 //scene.add(lightHelper, gridHelper) 
 
 const controls = new OrbitControls(camera, render.domElement);
+
+// you can easily disable it by using
+controls.enabled = false
 
 // let's add some stars
 function addStar(){
@@ -66,14 +71,15 @@ moon.position.z = 30;
 moon.position.setX(-7); // quite the same as using the equal
 
 function moveCamera(){
-  const p = document.body.getBoundingClientRect().top() // reading where the user is scrolling to check how far we are from the top
+  //const top = document.body.getBoundingClientRect().top;  // reading where the user is scrolling to check how far we are from the top
+  //const moveUp = top + moveUp;
   moon.rotation.x += 0.05;
   moon.rotation.y += 0.075;
   moon.rotation.z += 0.05;
 
-  camera.position.x = p * -0.0002;
-  camera.position.y = p * -0.0002;
-  camera.position.z = p * -0.01;
+  camera.position.x = camera.position.x -0.2;
+  camera.position.y = camera.position.y -0.2;
+  camera.position.z = camera.position.z -0.1;
 }
 
 document.body.onscroll = moveCamera // to call the func every time the user scrolls
