@@ -1,4 +1,3 @@
-import { add, faceDirection, rotate } from 'three/examples/jsm/nodes/Nodes.js';
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
@@ -7,26 +6,73 @@ import { gsap } from "gsap";
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight
+}
+
+const camera = new THREE.PerspectiveCamera( 75, sizes.width / sizes.height, 0.1, 1000 );
+
+const canvas = document.querySelector('canvas.webgl')
 
 const render = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#bg'),
+    //canvas: document.querySelector('#bg'),
+    canvas: canvas,
+    antialias: true,
+    alpha: true  
 });
 
-render.setPixelRatio( window.devicePixelRatio );
-render.setSize( window.innerWidth, window.innerHeight );
+render.shadowMap.enabled = true
+render.shadowMap.type = THREE.PCFSoftShadowMap
+render.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+render.setSize( sizes.width, sizes.height );
 
 camera.position.setZ(34);
 camera.position.setX(-5);
 
 render.render( scene, camera );
 
-//without light we won't se our shape
-const pointLight = new THREE.PointLight(0xffffff)
-pointLight.position.set(5,5,5)
+// Loaders
+const loadingBarElement = document.querySelector('.loading-bar')
+const bodyElement = document.querySelector('body')
+const loadingManager = new THREE.LoadingManager(
+    () => {
+        window.setTimeout(() => {
+            gsap.to(overlayMaterial.uniforms.uAlpha, {
+                duration: 3,
+                value: 0,
+                delay: 1
+            })
+            gsap.to(overlayMaterial.uniforms.uAlpha, {
+                duration: 3,
+                value: 0,
+                delay: 1
+            })
 
-const ambientLight = new THREE.AmbientLight(0xffffff)
-scene.add(pointLight, ambientLight)
+            loadingBarElement.classList.add('ended')
+            bodyElement.classList.add('loaded')
+            loadingBarElement.style.transform = ''
+
+        }, 500)
+    },
+    (itemUrl, itemsLoaded, itemsTotal) => {
+        console.log(itemUrl, itemsLoaded, itemsTotal)
+        const progressRatio = itemsLoaded / itemsTotal
+        loadingBarElement.style.transform = `scaleX(${progressRatio})`
+        console.log(progressRatio)
+    },
+    () => {
+
+    }
+)
+
+//without light we won't se our shape
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+directionalLight.position.set(1, 2, 0)
+directionalLight.castShadow = true
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+scene.add(directionalLight, ambientLight)
 
 const controls = new OrbitControls(camera, render.domElement);
 
@@ -83,8 +129,10 @@ let scrollY = window.scrollY;
 let currentSession = 0;
 
 window.addEventListener('scroll', () => {
-  scrollY = window.scrollY
-  const newSection = Math.round(scrollY / window.innerHeight);
+  scrollY = window.scrollY;
+  const newSection = Math.round(scrollY / sizes.height);
+
+  console.log(newSection);
 
   if (newSection != currentSession){
     currentSession = newSection;
@@ -108,11 +156,6 @@ window.addEventListener('scroll', () => {
   }
 }); 
 
-// on reload
-window.onbeforeunload = function() {
-  window.scrollTo(0, 0);
-} 
-
 function onScroll(){
   moon.rotation.x += 0.05;
   moon.rotation.y += 0.075;
@@ -125,14 +168,6 @@ function onScroll(){
 
 //window.addEventListener('scroll', onScroll); // to call the func every time the user scrolls
 
-window.addEventListener('wheel', onWheel); // to call the func every time the user scrolls
-
-let y = 0
-let position = 0
-
-function onWheel(event){
-  y = event.deltaY * 0.0007;
-}
 
 const clock = new THREE.Clock();
 let lastElapsedTime = 0;
@@ -147,6 +182,11 @@ const tick = () => {
   window.requestAnimationFrame(tick)
 }
 
+// on reload
+window.onbeforeunload = function() {
+  window.scrollTo(0, 0);
+}
+
 // let's create a function to automate this action
 function animate(){
   requestAnimationFrame( animate );
@@ -154,10 +194,6 @@ function animate(){
   moon.rotation.x += 0.001;
   moon.rotation.y += 0.0005;
   moon.rotation.z += 0.001;
-
-  camera.position.y = y;
-  position += y;
-  y *= 0.9;
 
   controls.update();
 
